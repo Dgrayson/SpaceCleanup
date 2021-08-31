@@ -1,25 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro; 
 
 public class ShipMovement : MonoBehaviour
 {
+    [SerializeField] private TextMeshProUGUI velocityText;
+    [SerializeField] private Transform spaceshipRoot;
 
-    public float nomralSpeed = 20f;
-    public float boostSpeed = 40f;
+    [Header("Speed")]
+    [SerializeField] private float nomralSpeed = 20f;
+    [SerializeField] private float boostSpeed = 40f;
+    [SerializeField] private float speed;
 
-    public Transform spaceshipRoot;
-    public float rotSpeed = 2.0f;
+    [Header("Rotaions")]
+    [SerializeField] private float rotZ = 0;
+    [SerializeField] private float rotY = 0;
+    [SerializeField] private float rotX = 0;
 
-    public float speed;
-    Rigidbody body;
-    Quaternion lookRot;
-    public float rotZ = 0;
-    public float rotY = 0;
-    public float rotX = 0; 
-    float mouseXSmooth = 0;
-    float mouseYSmooth = 0;
-    Vector3 defaultShipRot; 
+    [Header("Mouse Pos")]
+    [SerializeField] float mouseXSmooth = 0;
+    [SerializeField] float mouseYSmooth = 0;
+
+    
+    private float rotSpeed = 2.0f;
+
+
+    private Rigidbody body;
+    private Quaternion lookRot;
+
+    private Vector3 defaultShipRot; 
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -34,7 +46,7 @@ public class ShipMovement : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         MoveShip(); 
 
@@ -57,6 +69,8 @@ public class ShipMovement : MonoBehaviour
         moveDir = transform.TransformDirection(moveDir);
 
         body.velocity = new Vector3(moveDir.x, moveDir.y, moveDir.z);
+
+        UpdateText(); 
     }
 
     void RotateShip()
@@ -94,5 +108,10 @@ public class ShipMovement : MonoBehaviour
 
         rotZ = Mathf.Lerp(rotZ, defaultShipRot.z, Time.deltaTime);
 
+    }
+
+    void UpdateText()
+    {
+        velocityText.text = "Velocity: " + Mathf.Round(body.velocity.magnitude); 
     }
 }
