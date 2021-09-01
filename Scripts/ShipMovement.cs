@@ -1,17 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; 
+using TMPro;
+using System;
 
 public class ShipMovement : MonoBehaviour
-{
-    [SerializeField] private TextMeshProUGUI velocityText;
+{   
+
+
     [SerializeField] private Transform spaceshipRoot;
 
     [Header("Speed")]
     [SerializeField] private float nomralSpeed = 20f;
     [SerializeField] private float boostSpeed = 40f;
     [SerializeField] private float speed;
+    [SerializeField] private bool stopped = true;
+    [SerializeField] private float stoppingSpeed = 2; 
 
     [Header("Rotaions")]
     [SerializeField] private float rotZ = 0;
@@ -22,16 +26,18 @@ public class ShipMovement : MonoBehaviour
     [SerializeField] float mouseXSmooth = 0;
     [SerializeField] float mouseYSmooth = 0;
 
-    
-    private float rotSpeed = 2.0f;
+    [Header("UI Text")]
+    [SerializeField] private TextMeshProUGUI velocityText;
+    [SerializeField] private TextMeshProUGUI yawText;
+    [SerializeField] private TextMeshProUGUI pitchText;
+    [SerializeField] private TextMeshProUGUI rollText;
 
+    private float rotSpeed = 2.0f;
 
     private Rigidbody body;
     private Quaternion lookRot;
 
     private Vector3 defaultShipRot; 
-
-
 
     // Start is called before the first frame update
     void Start()
@@ -45,12 +51,38 @@ public class ShipMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+            stopped = !stopped;
+    }
+
     // Update is called once per frame
     void FixedUpdate()
     {
-        MoveShip(); 
+        if (!stopped)
+        {
+            if (Input.GetKey(KeyCode.R))
+                ResetShip();
 
-        RotateShip(); 
+            MoveShip();
+        }
+        else
+            StopShip(); 
+
+        RotateShip();
+        UpdateText();
+    }
+
+    private void ResetShip()
+    {
+        stopped = true;
+
+        rotX = 0;
+        rotY = 0;
+        rotZ = 0;
+
+        UpdateText(); 
     }
 
     void MoveShip()
@@ -69,8 +101,20 @@ public class ShipMovement : MonoBehaviour
         moveDir = transform.TransformDirection(moveDir);
 
         body.velocity = new Vector3(moveDir.x, moveDir.y, moveDir.z);
+    }
 
-        UpdateText(); 
+    void StopShip()
+    {
+        if(speed > 0.0f)
+        {
+            speed = Mathf.Lerp(speed, 0, Time.deltaTime * stoppingSpeed);
+
+            Vector3 moveDir = new Vector3(0, 0, speed);
+
+            moveDir = transform.TransformDirection(moveDir);
+
+            body.velocity = new Vector3(moveDir.x, moveDir.y, moveDir.z);
+        }
     }
 
     void RotateShip()
@@ -99,7 +143,7 @@ public class ShipMovement : MonoBehaviour
         rotZ = Mathf.Clamp(rotZ, -45, 45);
 
         rotY -= mouseXSmooth;
-        rotY = Mathf.Clamp(rotY, -360, 360);
+        //rotY = Mathf.Clamp(rotY, -360, 360);
 
         rotX -= mouseYSmooth;
         rotX = Mathf.Clamp(rotX,-90, 90);
@@ -112,6 +156,9 @@ public class ShipMovement : MonoBehaviour
 
     void UpdateText()
     {
-        velocityText.text = "Velocity: " + Mathf.Round(body.velocity.magnitude); 
+        velocityText.text = "Velocity: " + Mathf.Round(body.velocity.magnitude);
+        rollText.text = "Roll: " + rotZ.ToString("F2");
+        pitchText.text = "Pitch: " + rotX.ToString("F2");
+        yawText.text = "Yaw: " + rotY.ToString("F2");
     }
 }
